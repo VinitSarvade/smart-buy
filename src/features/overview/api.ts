@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { gateway, generateText, Output } from "ai";
 import z from "zod";
 
@@ -23,7 +24,7 @@ export type Overview = z.infer<typeof overviewSchema>;
 
 const MODEL = gateway("google/gemini-2.0-flash");
 
-export async function fetchOverview(productURL: string): Promise<Overview> {
+async function fetchOverviewUncached(productURL: string): Promise<Overview> {
   const content = await generateText({
     model: MODEL,
     prompt: `Provide a detailed overview, recommendation, and key specifications for the product at ${productURL}`,
@@ -32,3 +33,12 @@ export async function fetchOverview(productURL: string): Promise<Overview> {
 
   return content.output;
 }
+
+export const fetchOverview = unstable_cache(
+  fetchOverviewUncached,
+  ["overview"],
+  {
+    revalidate: 60 * 60 * 72, // Cache for 72 hours
+    tags: ["product-info", "overview"],
+  }
+);

@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { gateway, generateText, Output } from "ai";
 import z from "zod";
 
@@ -21,7 +22,7 @@ export type BasicInfo = z.infer<typeof basicInfoSchema>;
 
 const MODEL = gateway("google/gemini-2.0-flash");
 
-export async function fetchBasicInfo(productURL: string): Promise<BasicInfo> {
+async function fetchBasicInfoUncached(productURL: string): Promise<BasicInfo> {
   const content = await generateText({
     model: MODEL,
     prompt: `Please analyze the product at ${productURL} and provide basic information.`,
@@ -30,3 +31,12 @@ export async function fetchBasicInfo(productURL: string): Promise<BasicInfo> {
 
   return content.output;
 }
+
+export const fetchBasicInfo = unstable_cache(
+  fetchBasicInfoUncached,
+  ["basic-info"],
+  {
+    revalidate: 60 * 60 * 72, // Cache for 72 hours
+    tags: ["product-info", "basic-info"],
+  }
+);
