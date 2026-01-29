@@ -43,9 +43,9 @@ export function BasicInfoComponent({
             </div>
           </div>
           {imageUrl && (
-            <div className="flex h-40 w-40 items-center justify-center rounded-3xl border border-border bg-linear-to-br from-primary/15 via-secondary/40 to-accent/10">
+            <div className="flex size-40 items-center justify-center rounded-3xl border border-border bg-linear-to-br from-primary/15 via-secondary/40 to-accent/10">
               <svg
-                className="h-16 w-16 text-accent"
+                className="size-16 text-accent"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

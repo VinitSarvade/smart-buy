@@ -14,9 +14,9 @@ export function FeaturesComponent({ features }: Features) {
         <ul className="space-y-3">
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-emerald-500 text-white">
+              <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-emerald-500 text-white">
                 <svg
-                  className="h-3 w-3"
+                  className="size-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

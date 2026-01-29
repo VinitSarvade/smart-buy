@@ -1,7 +1,12 @@
 import { ProductSection } from "@/components/product-section";
 import { BasicInfo, BasicInfoSkeleton } from "@/features/basic-info";
 import { Features, FeaturesSkeleton } from "@/features/features";
-import { Overview, OverviewSkeleton } from "@/features/overview";
+import {
+  Overview,
+  OverviewSkeleton,
+  Specifications,
+} from "@/features/overview";
+import { ProsCons, ProsConsSkeleton } from "@/features/pros-cons";
 
 type SearchParams = Promise<
   string | string[][] | Record<string, string> | undefined
@@ -34,14 +39,18 @@ export default async function Page({ params, searchParams }: PageProps) {
         {/* Product Details */}
         <ProductSection
           fallback={
-            <div className="grid gap-8 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <OverviewSkeleton />
+            <div className="space-y-8">
+              <div className="grid gap-8 md:grid-cols-3">
+                <div className="md:col-span-2">
+                  <OverviewSkeleton />
+                </div>
+                <hr className="border-t border-border md:hidden" />
+                <div>
+                  <FeaturesSkeleton />
+                </div>
               </div>
-              <hr className="border-t border-border md:hidden" />
-              <div>
-                <FeaturesSkeleton />
-              </div>
+              <hr className="border-t border-border" />
+              <ProsConsSkeleton />
             </div>
           }
         >
@@ -55,6 +64,9 @@ export default async function Page({ params, searchParams }: PageProps) {
                 <Features productURL={productURL} />
               </div>
             </div>
+            <Specifications productURL={productURL} />
+            <hr className="border-t border-border" />
+            <ProsCons productURL={productURL} />
           </div>
         </ProductSection>
       </div>

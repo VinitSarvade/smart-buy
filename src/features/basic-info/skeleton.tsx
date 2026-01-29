@@ -10,7 +10,7 @@ export function BasicInfoSkeleton() {
             <div className="h-8 w-28 rounded-full bg-linear-to-r from-primary/20 via-secondary/30 to-accent/20" />
           </div>
         </div>
-        <div className="h-40 w-40 rounded-3xl border border-border bg-linear-to-br from-primary/15 via-secondary/25 to-accent/20" />
+        <div className="size-40 rounded-3xl border border-border bg-linear-to-br from-primary/15 via-secondary/25 to-accent/20" />
       </div>
       <div className="space-y-2">
         <div className="h-4 w-full rounded-full bg-linear-to-r from-primary/20 via-secondary/30 to-accent/20" />

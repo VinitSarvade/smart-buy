@@ -1,0 +1,27 @@
+export function ProsConsSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="h-8 bg-linear-to-r from-violet-200/50 via-violet-300/50 to-violet-200/50 rounded-2xl w-40" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <div className="h-6 bg-linear-to-r from-emerald-200/50 to-emerald-300/50 rounded-full w-24" />
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-4 bg-linear-to-r from-violet-200/50 via-violet-300/50 to-violet-200/50 rounded-full w-full"
+            />
+          ))}
+        </div>
+        <div className="space-y-4">
+          <div className="h-6 bg-linear-to-r from-rose-200/50 to-rose-300/50 rounded-full w-24" />
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-4 bg-linear-to-r from-violet-200/50 via-violet-300/50 to-violet-200/50 rounded-full w-full"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
