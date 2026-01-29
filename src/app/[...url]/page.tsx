@@ -1,5 +1,6 @@
 import { ProductSection } from "@/components/product-section";
 import { BasicInfo, BasicInfoSkeleton } from "@/features/basic-info";
+import { Overview, OverviewSkeleton } from "@/features/overview";
 
 type SearchParams = Promise<
   string | string[][] | Record<string, string> | undefined
@@ -27,6 +28,17 @@ export default async function Page({ params, searchParams }: PageProps) {
         {/* Basic Info */}
         <ProductSection fallback={<BasicInfoSkeleton />}>
           <BasicInfo productURL={productURL} />
+        </ProductSection>
+
+        {/* Product Details */}
+        <ProductSection
+          fallback={
+            <div className="space-y-8">
+              <OverviewSkeleton />
+            </div>
+          }
+        >
+          <Overview productURL={productURL} />
         </ProductSection>
       </div>
     </div>
