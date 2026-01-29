@@ -1,6 +1,8 @@
-import { unstable_cache } from "next/cache";
 import { gateway, generateText, Output } from "ai";
 import z from "zod";
+import { unstable_cache } from "next/cache";
+
+import { scraperFunction } from "@/lib/tools/scraper";
 
 export const basicInfoSchema = z.object({
   name: z.string().describe("Name of the product"),
@@ -23,13 +25,15 @@ export type BasicInfo = z.infer<typeof basicInfoSchema>;
 const MODEL = gateway("google/gemini-2.0-flash");
 
 async function fetchBasicInfoUncached(productURL: string): Promise<BasicInfo> {
-  const content = await generateText({
+  const content = await scraperFunction(productURL);
+  const result = await generateText({
     model: MODEL,
-    prompt: `Please analyze the product at ${productURL} and provide basic information.`,
     output: Output.object({ schema: basicInfoSchema }),
+    prompt: `Product URL: ${productURL}\n\n${content}`,
+    system: `You are a product information analyzer. You are given a product URL and you need to analyze the product and provide basic information about it. The prompt will include the product URL and the website content.`,
   });
 
-  return content.output;
+  return result.output;
 }
 
 export const fetchBasicInfo = unstable_cache(
@@ -38,5 +42,5 @@ export const fetchBasicInfo = unstable_cache(
   {
     revalidate: 60 * 60 * 72, // Cache for 72 hours
     tags: ["product-info", "basic-info"],
-  }
+  },
 );

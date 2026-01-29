@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+
 import { ProductSection } from "@/components/product-section";
 import { BasicInfo, BasicInfoSkeleton } from "@/features/basic-info";
 import { Features, FeaturesSkeleton } from "@/features/features";
@@ -7,6 +9,7 @@ import {
   Specifications,
 } from "@/features/overview";
 import { ProsCons, ProsConsSkeleton } from "@/features/pros-cons";
+import { parseProductURL } from "@/lib/product-url";
 
 type SearchParams = Promise<
   string | string[][] | Record<string, string> | undefined
@@ -24,9 +27,19 @@ export const dynamic = "force-dynamic";
 
 export default async function Page({ params, searchParams }: PageProps) {
   const { url } = await params;
-  const search = new URLSearchParams(await searchParams);
+  const search = await searchParams;
 
-  const productURL = url.join("/") + "?" + search.toString();
+  const firstSegment = decodeURIComponent(url[0] || "");
+  if (!firstSegment.includes(".") && !firstSegment.startsWith("http")) {
+    notFound();
+  }
+
+  const searchParamsRecord =
+    typeof search === "object" && !Array.isArray(search)
+      ? (search as Record<string, string>)
+      : undefined;
+
+  const productURL = parseProductURL(url, searchParamsRecord);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-violet-50/30 to-fuchsia-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">

@@ -1,9 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import type { BasicInfo } from "./api";
 
@@ -25,9 +21,10 @@ export function BasicInfoComponent({
                 {brand}
               </Badge>
             )}
-            <CardTitle className="text-balance text-4xl font-semibold leading-tight text-foreground md:text-5xl">
+            <CardTitle className="text-balance text-4xl font-semibold leading-tight text-foreground md:text-5xl capitalize">
               {name}
             </CardTitle>
+
             <div className="flex flex-wrap items-center gap-4">
               <span className="text-4xl font-semibold text-primary md:text-5xl">
                 {price}
@@ -61,6 +58,7 @@ export function BasicInfoComponent({
           )}
         </div>
       </CardHeader>
+
       <CardContent className="animate-[fadeIn_0.5s_ease-in] space-y-4 pt-6">
         <p className="text-lg leading-relaxed text-muted-foreground md:text-xl">
           {summary}
