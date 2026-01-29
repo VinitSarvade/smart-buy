@@ -17,7 +17,7 @@ const notoSansMono = Noto_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Better Product",
+  title: "SmartBuy",
   description: "Find everything you need to know before buying a product",
 };
 
