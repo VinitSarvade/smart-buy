@@ -4,8 +4,28 @@ import { useState } from "react";
 
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { twx } from "@/lib/twx";
 
 import type { Overview } from "./api";
+
+const ToggleButton = twx.button`
+  flex w-full items-center justify-between rounded-2xl border border-border
+  bg-muted/40 p-4 text-left transition-colors duration-300
+  hover:border-primary/60 hover:bg-muted/60
+`;
+
+const CollapsibleContainer = twx.div`
+  grid overflow-hidden rounded-2xl border border-border
+  transition-all duration-300 ease-out
+`;
+
+const SpecGrid = twx.div`
+  grid divide-y divide-border md:grid-cols-2 md:divide-x
+`;
+
+const SpecItem = twx.div`
+  flex items-start justify-between gap-4 px-4 py-3
+`;
 
 export function OverviewComponent({ overview }: { overview: string }) {
   return (
@@ -36,16 +56,13 @@ export function SpecificationsComponent({
   return (
     <CardContent>
       <div className="space-y-4">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex w-full items-center justify-between rounded-2xl border border-border bg-muted/40 p-4 text-left transition-colors duration-300 hover:border-primary/60 hover:bg-muted/60"
-        >
+        <ToggleButton onClick={() => setIsExpanded(!isExpanded)}>
           <span className="text-lg font-semibold text-foreground">
             Detailed Specifications
           </span>
           <svg
             className={cn(
-              "h-5 w-5 text-muted-foreground transition-transform duration-300 ease-out",
+              "size-5 text-muted-foreground transition-transform duration-300 ease-out",
               isExpanded && "rotate-180",
             )}
             fill="none"
@@ -59,34 +76,30 @@ export function SpecificationsComponent({
               d="M19 9l-7 7-7-7"
             />
           </svg>
-        </button>
+        </ToggleButton>
 
-        <div
+        <CollapsibleContainer
           className={cn(
-            "grid overflow-hidden rounded-2xl border border-border transition-all duration-300 ease-out",
             isExpanded
               ? "grid-rows-[1fr] opacity-100"
               : "grid-rows-[0fr] opacity-0",
           )}
         >
           <div className="overflow-hidden">
-            <div className="grid divide-y divide-border md:grid-cols-2 md:divide-x">
+            <SpecGrid>
               {specifications.map((spec) => (
-                <div
-                  key={spec.label}
-                  className="flex items-start justify-between gap-4 px-4 py-3"
-                >
+                <SpecItem key={spec.label}>
                   <span className="whitespace-nowrap text-sm font-medium text-foreground">
                     {spec.label}
                   </span>
                   <span className="text-right font-mono text-sm text-muted-foreground">
                     {spec.value}
                   </span>
-                </div>
+                </SpecItem>
               ))}
-            </div>
+            </SpecGrid>
           </div>
-        </div>
+        </CollapsibleContainer>
       </div>
     </CardContent>
   );

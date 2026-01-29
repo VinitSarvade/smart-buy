@@ -1,6 +1,12 @@
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { twx } from "@/lib/twx";
 
 import type { Features } from "./api";
+
+const IconContainer = twx.div`
+  flex size-5 shrink-0 items-center justify-center rounded-full
+  bg-linear-to-br from-emerald-400 to-emerald-500 text-white mt-0.5
+`;
 
 export function FeaturesComponent({ features }: Features) {
   return (
@@ -14,7 +20,7 @@ export function FeaturesComponent({ features }: Features) {
         <ul className="space-y-3">
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-3">
-              <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-emerald-500 text-white">
+              <IconContainer>
                 <svg
                   className="size-3"
                   fill="none"
@@ -28,7 +34,7 @@ export function FeaturesComponent({ features }: Features) {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-              </div>
+              </IconContainer>
               <span className="text-base leading-relaxed text-foreground">
                 {feature}
               </span>
