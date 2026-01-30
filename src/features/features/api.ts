@@ -1,6 +1,9 @@
 import { gateway, generateText, Output } from "ai";
+import { match } from "ts-pattern";
 import z from "zod";
 import { unstable_cache } from "next/cache";
+
+import { scraperFunction } from "@/lib/tools/scraper";
 
 export const featuresSchema = z.object({
   features: z
@@ -15,13 +18,61 @@ export type Features = z.infer<typeof featuresSchema>;
 const MODEL = gateway("google/gemini-2.0-flash");
 
 async function fetchFeaturesUncached(productURL: string): Promise<Features> {
-  const content = await generateText({
+  const scraperResult = await scraperFunction(productURL);
+
+  const content = scraperResult.match(
+    (data) => data,
+    (error) => {
+      const errorMessage = match(error)
+        .with({ type: "firecrawl_failed" }, (e) =>
+          `Firecrawl failed: ${e.message}`)
+        .with({ type: "tavily_failed" }, (e) =>
+          `Tavily failed: ${e.message}`)
+        .with({ type: "empty_content" }, (e) =>
+          `${e.service} returned no content`)
+        .with({ type: "all_services_failed" }, (e) =>
+          `All services failed: ${e.errors.join("; ")}`)
+        .exhaustive();
+
+      throw new Error(`Failed to scrape ${productURL}: ${errorMessage}`);
+    },
+  );
+  const result = await generateText({
     model: MODEL,
-    prompt: `List the key features and capabilities of the product at ${productURL}`,
     output: Output.object({ schema: featuresSchema }),
+    system: `You are a product feature extraction specialist focused on identifying the most important and distinctive capabilities.
+
+Your task is to extract 5-6 key features that define this product and make it valuable to customers.
+
+Selection Criteria:
+- Prioritize UNIQUE or STANDOUT features that differentiate this product
+- Include major technical specifications that matter (e.g., "5000mAh battery", "M3 Pro chip")
+- Focus on customer-facing benefits and capabilities
+- Avoid generic marketing fluff - be specific and technical
+- Each feature should be clear and self-contained
+- Absolutely NO duplicates
+
+Format Guidelines:
+- Keep each feature concise (one clear phrase or short sentence)
+- Be specific with numbers/specs when relevant
+- Focus on the "what" not the "why"
+- Order by importance/prominence
+
+Example good features:
+- "6.7-inch Super Retina XDR display with ProMotion 120Hz"
+- "Triple 48MP camera system with 5x optical zoom"
+- "All-day battery life with 65W fast charging"`,
+    prompt: `Extract the top 5-6 key features from this product:
+
+URL: ${productURL}
+
+Page Content:
+${content}
+
+Identify the most important, distinctive features that define this product. Focus on technical capabilities, unique selling points, and specifications that matter to customers.`,
   });
 
-  return content.output;
+  return result.output;
 }
 
 export const fetchFeatures = unstable_cache(

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Afacad_Flux, Noto_Sans_Mono } from "next/font/google";
 
-import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";

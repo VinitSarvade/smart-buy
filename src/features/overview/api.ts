@@ -1,6 +1,9 @@
 import { unstable_cache } from "next/cache";
 import { gateway, generateText, Output } from "ai";
+import { match } from "ts-pattern";
 import z from "zod";
+
+import { scraperFunction } from "@/lib/tools/scraper";
 
 export const overviewSchema = z.object({
   overview: z
@@ -25,13 +28,65 @@ export type Overview = z.infer<typeof overviewSchema>;
 const MODEL = gateway("google/gemini-2.0-flash");
 
 async function fetchOverviewUncached(productURL: string): Promise<Overview> {
-  const content = await generateText({
+  const scraperResult = await scraperFunction(productURL);
+
+  const content = scraperResult.match(
+    (data) => data,
+    (error) => {
+      const errorMessage = match(error)
+        .with({ type: "firecrawl_failed" }, (e) =>
+          `Firecrawl failed: ${e.message}`)
+        .with({ type: "tavily_failed" }, (e) =>
+          `Tavily failed: ${e.message}`)
+        .with({ type: "empty_content" }, (e) =>
+          `${e.service} returned no content`)
+        .with({ type: "all_services_failed" }, (e) =>
+          `All services failed: ${e.errors.join("; ")}`)
+        .exhaustive();
+
+      throw new Error(`Failed to scrape ${productURL}: ${errorMessage}`);
+    },
+  );
+  const result = await generateText({
     model: MODEL,
-    prompt: `Provide a detailed overview, recommendation, and key specifications for the product at ${productURL}`,
     output: Output.object({ schema: overviewSchema }),
+    system: `You are an expert product analyst specializing in comprehensive product evaluation and technical documentation.
+
+Your task is to create a detailed product overview and extract complete technical specifications.
+
+OVERVIEW Guidelines (write 4-6 sentences):
+1. Opening: What is this product and its main purpose
+2. Unique Value: What makes it stand out from competitors
+3. Target Audience: Who should buy this (be specific - not just "everyone")
+4. Key Strengths: 2-3 standout features or capabilities
+5. Important Caveats: Any significant limitations or considerations
+6. Keep it informative but concise - focus on decision-relevant information
+
+SPECIFICATIONS Guidelines:
+- Extract ALL technical and product specifications available
+- Organize by category: Display, Performance, Camera, Battery, Connectivity, Physical, etc.
+- Be comprehensive - include dimensions, weight, materials, colors, warranty, etc.
+- Use exact values from the content (don't approximate)
+- Format consistently (e.g., "6.1 inches" not "6.1 inch" or "6.1\"")
+- NO duplicates - each spec should appear once
+- If a specification category isn't mentioned, don't invent it
+
+Example specifications:
+- Display: "6.7-inch Super Retina XDR OLED, 2796 x 1290 pixels, 120Hz ProMotion"
+- Processor: "Apple A17 Pro chip with 6-core CPU"
+- Storage: "256GB / 512GB / 1TB options"
+- Weight: "221 grams"`,
+    prompt: `Provide a comprehensive product overview and extract all technical specifications:
+
+URL: ${productURL}
+
+Page Content:
+${content}
+
+Create a detailed 4-6 sentence overview covering what the product is, what makes it unique, who it's for, key strengths, and caveats. Then extract every available technical specification organized by category.`,
   });
 
-  return content.output;
+  return result.output;
 }
 
 export const fetchOverview = unstable_cache(

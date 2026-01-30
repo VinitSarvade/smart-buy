@@ -1,9 +1,78 @@
+import { err, ok, Result } from "neverthrow";
+
 /**
  * Helper functions for handling product URLs in routes
  *
  * Usage: Users can access products by prepending your domain to any product URL
  * Example: https://yourdomain.com/https://www.flipkart.com/product
  */
+
+type ValidationError =
+  | { type: "missing_url" }
+  | { type: "relative_url" }
+  | { type: "system_path" }
+  | { type: "invalid_domain" }
+  | { type: "invalid_protocol" }
+  | { type: "invalid_format" };
+
+export function validateProductURL(
+  url: string,
+): Result<string, ValidationError> {
+  if (!url || typeof url !== "string") {
+    return err({ type: "missing_url" });
+  }
+
+  const trimmedURL = url.trim();
+
+  if (trimmedURL.startsWith("/") || trimmedURL.startsWith(".")) {
+    return err({ type: "relative_url" });
+  }
+
+  const systemPaths = [
+    ".well-known",
+    "favicon.ico",
+    "robots.txt",
+    "sitemap.xml",
+    "apple-touch-icon",
+    "manifest.json",
+    "_next",
+    "api",
+  ];
+
+  const lowerURL = trimmedURL.toLowerCase();
+  if (systemPaths.some((path) => lowerURL.startsWith(path))) {
+    return err({ type: "system_path" });
+  }
+
+  let normalizedURL = trimmedURL;
+
+  if (!trimmedURL.startsWith("http://") && !trimmedURL.startsWith("https://")) {
+    normalizedURL = "https://" + trimmedURL;
+  }
+
+  if (normalizedURL.startsWith("https:/") && !normalizedURL.startsWith("https://")) {
+    normalizedURL = normalizedURL.replace("https:/", "https://");
+  } else if (normalizedURL.startsWith("http:/") && !normalizedURL.startsWith("http://")) {
+    normalizedURL = normalizedURL.replace("http:/", "http://");
+  }
+
+  const urlResult = Result.fromThrowable(
+    () => new URL(normalizedURL),
+    () => ({ type: "invalid_format" as const }),
+  )();
+
+  return urlResult.andThen((urlObj) => {
+    if (!urlObj.hostname.includes(".")) {
+      return err({ type: "invalid_domain" });
+    }
+
+    if (!["http:", "https:"].includes(urlObj.protocol)) {
+      return err({ type: "invalid_protocol" });
+    }
+
+    return ok(normalizedURL);
+  });
+}
 
 /**
  * Checks if the URL segments represent a valid product URL
@@ -50,21 +119,18 @@ export function isValidProductURL(urlSegments: string[]): boolean {
  */
 export function parseProductURL(
   urlSegments: string[],
-  searchParams?: Record<string, string> | URLSearchParams
-): string {
+  searchParams?: Record<string, string> | URLSearchParams,
+): Result<string, { type: "no_segments" }> {
   if (!urlSegments || urlSegments.length === 0) {
-    throw new Error("No URL segments provided");
+    return err({ type: "no_segments" });
   }
 
-  // Decode each segment (handles %3A -> :, etc.)
   const decodedSegments = urlSegments.map((segment) =>
-    decodeURIComponent(segment)
+    decodeURIComponent(segment),
   );
 
-  // Join segments back together
   let productURL = decodedSegments.join("/");
 
-  // Fix collapsed protocol: https:/ -> https:// or http:/ -> http://
   if (productURL.startsWith("https:/") && !productURL.startsWith("https://")) {
     productURL = productURL.replace("https:/", "https://");
   } else if (
@@ -73,11 +139,9 @@ export function parseProductURL(
   ) {
     productURL = productURL.replace("http:/", "http://");
   } else if (!productURL.startsWith("http")) {
-    // If no protocol, assume https
     productURL = "https://" + productURL;
   }
 
-  // Add search params if provided
   if (searchParams) {
     const searchString = new URLSearchParams(searchParams).toString();
     if (searchString) {
@@ -85,5 +149,5 @@ export function parseProductURL(
     }
   }
 
-  return productURL;
+  return ok(productURL);
 }
