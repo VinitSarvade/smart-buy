@@ -56,12 +56,14 @@ export function validateProductURL(
     normalizedURL = normalizedURL.replace("http:/", "http://");
   }
 
-  const urlResult = Result.fromThrowable(
-    () => new URL(normalizedURL),
-    () => ({ type: "invalid_format" as const }),
+  const createURL = (): URL => new URL(normalizedURL);
+
+  const urlResult: Result<URL, ValidationError> = Result.fromThrowable(
+    createURL,
+    (): ValidationError => ({ type: "invalid_format" }),
   )();
 
-  return urlResult.andThen((urlObj) => {
+  return urlResult.andThen((urlObj): Result<string, ValidationError> => {
     if (!urlObj.hostname.includes(".")) {
       return err({ type: "invalid_domain" });
     }

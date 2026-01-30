@@ -41,7 +41,7 @@ export default async function ProductPage({ searchParams }: PageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-violet-50/30 to-fuchsia-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-violet-50/30 to-fuchsia-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-12 relative">
         {/* Header with back button */}
         <div className="flex items-center gap-4">

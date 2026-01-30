@@ -31,12 +31,14 @@ export function ProductURLForm() {
       urlToValidate = "https://" + input;
     }
 
-    const urlResult = Result.fromThrowable(
-      () => new URL(urlToValidate),
-      () => ({ type: "invalid_format" as const }),
+    const createURL = (): URL => new URL(urlToValidate);
+
+    const urlResult: Result<URL, ValidationError> = Result.fromThrowable(
+      createURL,
+      (): ValidationError => ({ type: "invalid_format" }),
     )();
 
-    return urlResult.andThen((urlObj) => {
+    return urlResult.andThen((urlObj): Result<string, ValidationError> => {
       if (!urlObj.hostname.includes(".")) {
         return err({ type: "invalid_domain" });
       }
@@ -44,7 +46,7 @@ export function ProductURLForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
