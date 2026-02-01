@@ -2,11 +2,13 @@
 
 import { revalidateTag } from "next/cache";
 
-/**
- * Clear all product information caches
- */
+export async function clearScrapedContentCache() {
+  revalidateTag("scraped-content", "max");
+}
+
 export async function clearAllProductCache() {
   revalidateTag("product-info", "max");
+  revalidateTag("scraped-content", "max");
 }
 
 /**

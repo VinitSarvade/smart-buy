@@ -1,9 +1,8 @@
 import { gateway, generateText, Output } from "ai";
-import { match } from "ts-pattern";
 import z from "zod";
 import { unstable_cache } from "next/cache";
 
-import { scraperFunction } from "@/lib/tools/scraper";
+import { getScrapedContent } from "@/lib/scraper-cache";
 
 export const featuresSchema = z.object({
   features: z
@@ -18,25 +17,7 @@ export type Features = z.infer<typeof featuresSchema>;
 const MODEL = gateway("google/gemini-2.0-flash");
 
 async function fetchFeaturesUncached(productURL: string): Promise<Features> {
-  const scraperResult = await scraperFunction(productURL);
-
-  const content = scraperResult.match(
-    (data) => data,
-    (error) => {
-      const errorMessage = match(error)
-        .with({ type: "firecrawl_failed" }, (e) =>
-          `Firecrawl failed: ${e.message}`)
-        .with({ type: "tavily_failed" }, (e) =>
-          `Tavily failed: ${e.message}`)
-        .with({ type: "empty_content" }, (e) =>
-          `${e.service} returned no content`)
-        .with({ type: "all_services_failed" }, (e) =>
-          `All services failed: ${e.errors.join("; ")}`)
-        .exhaustive();
-
-      throw new Error(`Failed to scrape ${productURL}: ${errorMessage}`);
-    },
-  );
+  const content = await getScrapedContent(productURL);
   const result = await generateText({
     model: MODEL,
     output: Output.object({ schema: featuresSchema }),

@@ -64,12 +64,19 @@ export function validateProductURL(
   )();
 
   return urlResult.andThen((urlObj): Result<string, ValidationError> => {
-    if (!urlObj.hostname.includes(".")) {
+    if (!urlObj.hostname || urlObj.hostname.startsWith(".") || !urlObj.hostname.includes(".")) {
       return err({ type: "invalid_domain" });
     }
 
     if (!["http:", "https:"].includes(urlObj.protocol)) {
       return err({ type: "invalid_protocol" });
+    }
+
+    const hostnameWithoutPort = urlObj.hostname.split(":")[0];
+    const domainParts = hostnameWithoutPort.split(".");
+
+    if (domainParts.some(part => !part || part.length === 0)) {
+      return err({ type: "invalid_domain" });
     }
 
     return ok(normalizedURL);
