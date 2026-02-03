@@ -10,10 +10,19 @@ import {
   SpecificationsComponent,
 } from "@/features/overview/component";
 import { OverviewSkeleton } from "@/features/overview/skeleton";
+import { PricingComparisonComponent } from "@/features/pricing-comparison/component";
 import type { ProsCons } from "@/features/pros-cons/api";
 import { ProsConsComponent } from "@/features/pros-cons/component";
 import { ProsConsSkeleton } from "@/features/pros-cons/skeleton";
-import { twx } from "@/lib/twx";
+
+import { AgentContent } from "./agent-content";
+import {
+  MainGridColumn,
+  ProductDivider,
+  ProductGrid,
+  ProductSection,
+  SideGridColumn,
+} from "./layout-section";
 
 type AgentData = {
   "basic-info"?: BasicInfo;
@@ -34,135 +43,124 @@ type AgentErrors = {
   [agentId: string]: string;
 };
 
-const AnimatedContainer = twx.div`
-  animate-in fade-in slide-in-from-bottom-4 duration-500
-`;
-
-const TransitionContainer = twx.div`
-  transition-all duration-300
-`;
-
-const ErrorContainer = twx.div`
-  rounded-xl border border-destructive/50 bg-destructive/5 p-6
-`;
-
-function AgentError({ agentName, error }: { agentName: string; error: string }) {
-  return (
-    <ErrorContainer>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-destructive">
-            {agentName} Failed
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground">{error}</p>
-        <p className="text-xs text-muted-foreground">
-          Please try again or contact support if the issue persists.
-        </p>
-      </div>
-    </ErrorContainer>
-  );
-}
-
-function getAgentStatus(
-  agentId: string,
-  agentProgress: AgentProgress[]
-): AgentStatus {
-  const agent = agentProgress.find((a) => a.id === agentId);
-  return agent?.status || "pending";
-}
-
-function getAgentName(agentId: string, agentProgress: AgentProgress[]): string {
-  const agent = agentProgress.find((a) => a.id === agentId);
-  return agent?.name || agentId;
-}
-
 export function ProductResults({
   agentData,
   agentErrors,
   agentProgress,
+  onRetryAgent,
 }: {
   agentData: AgentData;
   agentErrors: AgentErrors;
   agentProgress: AgentProgress[];
+  onRetryAgent: (agentId: string) => void;
 }) {
-  const basicInfoStatus = getAgentStatus("basic-info", agentProgress);
-  const overviewStatus = getAgentStatus("overview", agentProgress);
-  const featuresStatus = getAgentStatus("features", agentProgress);
-  const prosConsStatus = getAgentStatus("pros-cons", agentProgress);
+  const getAgentStatus = (agentId: string) => {
+    const agent = agentProgress.find((a) => a.id === agentId);
+    return agent?.status || "pending";
+  };
+
+  const getAgentName = (agentId: string) => {
+    const agent = agentProgress.find((a) => a.id === agentId);
+    return agent?.name || agentId;
+  };
+
+  const basicInfoStatus = getAgentStatus("basic-info");
+  const overviewStatus = getAgentStatus("overview");
+  const featuresStatus = getAgentStatus("features");
+  const prosConsStatus = getAgentStatus("pros-cons");
 
   return (
-    <div className="space-y-8">
-      <TransitionContainer>
-        {agentData["basic-info"] ? (
-          <AnimatedContainer>
-            <BasicInfoComponent {...agentData["basic-info"]} />
-          </AnimatedContainer>
-        ) : basicInfoStatus === "error" ? (
-          <AgentError
-            agentName={getAgentName("basic-info", agentProgress)}
-            error={agentErrors["basic-info"] || "Unknown error"}
-          />
-        ) : (
-          <BasicInfoSkeleton />
-        )}
-      </TransitionContainer>
+    <ProductSection>
+      <AgentContent
+        data={agentData["basic-info"]}
+        error={agentErrors["basic-info"]}
+        status={basicInfoStatus}
+        agentName={getAgentName("basic-info")}
+        agentId="basic-info"
+        skeleton={BasicInfoSkeleton}
+        component={BasicInfoComponent}
+        onRetry={onRetryAgent}
+      />
 
-      <div className="grid gap-8 md:grid-cols-3 transition-all duration-300">
-        <div className="md:col-span-2">
+      <ProductGrid>
+        <MainGridColumn>
           {agentData.overview ? (
-            <AnimatedContainer>
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <OverviewComponent overview={agentData.overview.overview} />
-            </AnimatedContainer>
+            </div>
           ) : overviewStatus === "error" ? (
-            <AgentError
-              agentName={getAgentName("overview", agentProgress)}
-              error={agentErrors.overview || "Unknown error"}
-            />
+            <div className="rounded-xl border border-destructive/50 bg-destructive/5 p-6">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-destructive">
+                    {getAgentName("overview")} Failed
+                  </span>
+                  <button
+                    onClick={() => onRetryAgent("overview")}
+                    className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Failed to load overview information.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Please try again or contact support if the issue persists.
+                </p>
+              </div>
+            </div>
           ) : (
             <OverviewSkeleton />
           )}
-        </div>
-        <div>
-          {agentData.features ? (
-            <AnimatedContainer>
-              <FeaturesComponent {...agentData.features} />
-            </AnimatedContainer>
-          ) : featuresStatus === "error" ? (
-            <AgentError
-              agentName={getAgentName("features", agentProgress)}
-              error={agentErrors.features || "Unknown error"}
-            />
-          ) : (
-            <FeaturesSkeleton />
-          )}
-        </div>
-      </div>
+        </MainGridColumn>
+
+        <SideGridColumn>
+          <AgentContent
+            data={agentData.features}
+            error={agentErrors.features}
+            status={featuresStatus}
+            agentName={getAgentName("features")}
+            agentId="features"
+            skeleton={FeaturesSkeleton}
+            component={FeaturesComponent}
+            onRetry={onRetryAgent}
+          />
+        </SideGridColumn>
+      </ProductGrid>
 
       {agentData.overview && (
-        <AnimatedContainer>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <SpecificationsComponent
             specifications={agentData.overview.specifications}
           />
-        </AnimatedContainer>
+        </div>
       )}
 
-      <hr className="border-t border-border" />
+      <ProductDivider />
 
-      <TransitionContainer>
-        {agentData["pros-cons"] ? (
-          <AnimatedContainer>
-            <ProsConsComponent {...agentData["pros-cons"]} />
-          </AnimatedContainer>
-        ) : prosConsStatus === "error" ? (
-          <AgentError
-            agentName={getAgentName("pros-cons", agentProgress)}
-            error={agentErrors["pros-cons"] || "Unknown error"}
-          />
-        ) : (
-          <ProsConsSkeleton />
+      <AgentContent
+        data={agentData["pros-cons"]}
+        error={agentErrors["pros-cons"]}
+        status={prosConsStatus}
+        agentName={getAgentName("pros-cons")}
+        agentId="pros-cons"
+        skeleton={ProsConsSkeleton}
+        component={ProsConsComponent}
+        onRetry={onRetryAgent}
+      />
+
+      {basicInfoStatus === "complete" &&
+        overviewStatus === "complete" &&
+        featuresStatus === "complete" &&
+        prosConsStatus === "complete" && (
+          <>
+            <ProductDivider />
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <PricingComparisonComponent />
+            </div>
+          </>
         )}
-      </TransitionContainer>
-    </div>
+    </ProductSection>
   );
 }

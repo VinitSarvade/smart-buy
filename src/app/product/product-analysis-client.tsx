@@ -35,7 +35,10 @@ const AGENTS: AgentProgress[] = [
   { id: "overview", name: "Product Overview", status: "pending" },
   { id: "features", name: "Key Features", status: "pending" },
   { id: "pros-cons", name: "Pros & Cons", status: "pending" },
+  { id: "pricing-comparison", name: "Pricing Comparison", status: "pending" },
 ];
+
+const MAIN_AGENTS = AGENTS.filter((agent) => agent.id !== "pricing-comparison");
 
 type AnalysisStatus =
   | { type: "idle" }
@@ -57,6 +60,7 @@ type Action =
   | { type: "AGENT_START"; agentId: string }
   | { type: "AGENT_COMPLETE"; agentId: string; data: unknown }
   | { type: "AGENT_ERROR"; agentId: string; error: string }
+  | { type: "RETRY_AGENT"; agentId: string }
   | { type: "START_CLOSING" }
   | { type: "FINISH_CLOSING" };
 
@@ -122,6 +126,20 @@ function reducer(state: State, action: Action): State {
         ),
       };
 
+    case "RETRY_AGENT":
+      const newAgentErrors = { ...state.agentErrors };
+      delete newAgentErrors[action.agentId];
+
+      return {
+        ...state,
+        agentErrors: newAgentErrors,
+        agentProgress: state.agentProgress.map((agent) =>
+          agent.id === action.agentId
+            ? { ...agent, status: "pending" as AgentStatus }
+            : agent,
+        ),
+      };
+
     case "START_CLOSING":
       return { ...state, status: { type: "closing" } };
 
@@ -139,6 +157,10 @@ type Props = {
 
 export function ProductAnalysisClient({ productURL }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  const retryAgent = (agentId: string) => {
+    dispatch({ type: "RETRY_AGENT", agentId });
+  };
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -249,9 +271,10 @@ export function ProductAnalysisClient({ productURL }: Props) {
   }
 
   const completedCount = state.agentProgress.filter(
-    (a) => a.status === "complete",
+    (a) =>
+      a.status === "complete" && MAIN_AGENTS.some((main) => main.id === a.id),
   ).length;
-  const totalCount = state.agentProgress.length;
+  const totalCount = MAIN_AGENTS.length;
 
   return (
     <>
@@ -274,6 +297,7 @@ export function ProductAnalysisClient({ productURL }: Props) {
         agentData={state.agentData}
         agentErrors={state.agentErrors}
         agentProgress={state.agentProgress}
+        onRetryAgent={retryAgent}
       />
     </>
   );

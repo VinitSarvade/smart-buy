@@ -24,7 +24,11 @@ export function AgentProgressItem({
       <div className="w-5 h-5 flex items-center justify-center">
         <AgentStatusIcon status={agent.status} />
       </div>
-      <AgentStatusLabel name={agent.name} status={agent.status} />
+      <AgentStatusLabel
+        name={agent.name}
+        status={agent.status}
+        agentId={agent.id}
+      />
     </div>
   );
 }
