@@ -8,11 +8,17 @@ import "./globals.css";
 const afacadFlux = Afacad_Flux({
   variable: "--font-afacad-flux",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "sans-serif"],
 });
 
 const notoSansMono = Noto_Sans_Mono({
   variable: "--font-noto-sans-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  fallback: ["monospace"],
 });
 
 export const metadata: Metadata = {

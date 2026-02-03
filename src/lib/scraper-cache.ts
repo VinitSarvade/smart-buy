@@ -1,8 +1,10 @@
 "use server";
 
+import { match } from "ts-pattern";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { match } from "ts-pattern";
+
+import { CACHE_CONFIG } from "@/lib/cache-constants";
 import { scraperFunction } from "@/lib/tools/scraper";
 
 async function getScrapedContentCached(url: string): Promise<string> {
@@ -23,17 +25,14 @@ async function getScrapedContentCached(url: string): Promise<string> {
         .exhaustive();
 
       throw new Error(`Scraping failed for ${url}: ${errorMessage}`);
-    }
+    },
   );
 }
 
 const getScrapedContentPersistent = unstable_cache(
   getScrapedContentCached,
-  ["scraped-content"],
-  {
-    revalidate: 60 * 60 * 72,
-    tags: ["scraped-content"],
-  }
+  CACHE_CONFIG.SCRAPED_CONTENT.key,
+  CACHE_CONFIG.SCRAPED_CONTENT,
 );
 
 // Deduplicates parallel scraping requests for the same URL

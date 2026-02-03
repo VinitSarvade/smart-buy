@@ -1,3 +1,5 @@
+import { CheckIcon } from "@phosphor-icons/react/ssr";
+
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { twx } from "@/lib/twx";
 
@@ -21,19 +23,7 @@ export function FeaturesComponent({ features }: Features) {
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-3">
               <IconContainer>
-                <svg
-                  className="size-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                <CheckIcon className="size-3" weight="bold" />
               </IconContainer>
               <span className="text-base leading-relaxed text-foreground">
                 {feature}

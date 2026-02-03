@@ -2,9 +2,15 @@ import { gateway, generateText, Output } from "ai";
 import z from "zod";
 import { unstable_cache } from "next/cache";
 
+import { CACHE_CONFIG } from "@/lib/cache-constants";
 import { getScrapedContent } from "@/lib/scraper-cache";
 
 export const featuresSchema = z.object({
+  isProduct: z
+    .boolean()
+    .describe(
+      "true ONLY if this page is selling a product with a REAL MONETARY PRICE (not Free). Must have someone paying money. false for: free software, open-source tools, icon sets, frameworks, documentation, homepages, listings",
+    ),
   features: z
     .array(z.string())
     .describe(
@@ -12,7 +18,8 @@ export const featuresSchema = z.object({
     ),
 });
 
-export type Features = z.infer<typeof featuresSchema>;
+type FeaturesWithFlag = z.infer<typeof featuresSchema>;
+export type Features = Omit<FeaturesWithFlag, "isProduct">;
 
 const MODEL = gateway("google/gemini-2.0-flash");
 
@@ -23,7 +30,13 @@ async function fetchFeaturesUncached(productURL: string): Promise<Features> {
     output: Output.object({ schema: featuresSchema }),
     system: `You are a product feature extraction specialist focused on identifying the most important and distinctive capabilities.
 
-Your task is to extract 5-6 key features that define this product and make it valuable to customers.
+Your task is to determine if a page contains a specific purchasable product and extract its key features.
+
+CRITICAL: Set isProduct=true ONLY if someone PAYS MONEY for a specific product (has real price like $299, ₹15,999).
+Set isProduct=false for: FREE software, open-source libraries, icon sets, frameworks, documentation, homepages, listings.
+
+Guidelines when isProduct=true:
+- Extract 5-6 key features that define this product and make it valuable to customers
 
 Selection Criteria:
 - Prioritize UNIQUE or STANDOUT features that differentiate this product
@@ -43,24 +56,31 @@ Example good features:
 - "6.7-inch Super Retina XDR display with ProMotion 120Hz"
 - "Triple 48MP camera system with 5x optical zoom"
 - "All-day battery life with 65W fast charging"`,
-    prompt: `Extract the top 5-6 key features from this product:
+    prompt: `Analyze this page and extract key product features:
 
 URL: ${productURL}
 
 Page Content:
 ${content}
 
-Identify the most important, distinctive features that define this product. Focus on technical capabilities, unique selling points, and specifications that matter to customers.`,
+First determine: Is this a product page with a specific purchasable product?
+Then extract: the top 5-6 key features. Focus on technical capabilities, unique selling points, and specifications that matter to customers.`,
   });
 
-  return result.output;
+  if (!result.output.isProduct) {
+    throw new Error("No product found on this page");
+  }
+
+  const { isProduct, ...productFeatures } = result.output;
+  return productFeatures;
 }
 
-export const fetchFeatures = unstable_cache(
-  fetchFeaturesUncached,
-  ["features"],
-  {
-    revalidate: 60 * 60 * 72, // Cache for 72 hours
-    tags: ["product-info", "features"],
-  },
-);
+export const fetchFeatures = (productURL: string) =>
+  unstable_cache(
+    fetchFeaturesUncached,
+    [...CACHE_CONFIG.FEATURES.key, productURL],
+    {
+      ...CACHE_CONFIG.FEATURES,
+      tags: [...CACHE_CONFIG.FEATURES.tags, `product-url:${productURL}`],
+    },
+  )(productURL);

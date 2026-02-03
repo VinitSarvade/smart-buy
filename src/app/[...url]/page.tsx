@@ -16,10 +16,7 @@ type PageProps = {
 
 export const dynamic = "force-dynamic";
 
-export default async function LegacyURLPage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function URLPage({ params, searchParams }: PageProps) {
   const { url } = await params;
   const search = await searchParams;
 
@@ -28,8 +25,8 @@ export default async function LegacyURLPage({
       ? (search as Record<string, string>)
       : undefined;
 
-  const result = parseProductURL(url, searchParamsRecord).andThen((productURL) =>
-    validateProductURL(productURL),
+  const result = parseProductURL(url, searchParamsRecord).andThen(
+    (productURL) => validateProductURL(productURL),
   );
 
   result.match(

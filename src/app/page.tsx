@@ -1,29 +1,53 @@
-import { ProductURLForm } from "@/components/product-url-form";
+import { PageBackground } from "@/components/ui/layouts";
+import { ProductSearchForm } from "@/components/product-search-form";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-50 via-violet-50/30 to-fuchsia-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <main className="w-full max-w-2xl px-6 py-12">
-        <div className="space-y-8 text-center">
+    <PageBackground>
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-2xl space-y-8 text-center">
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-              Smart Product Analysis
+            <h1 className="text-5xl md:text-7xl font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+              Better Product
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Enter any product URL to get detailed information, features, pros
-              & cons
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400">
+              AI-powered product analysis in seconds
             </p>
           </div>
 
-          <ProductURLForm />
+          <ProductSearchForm />
 
-          <div className="pt-8 space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-500">
-              Supported platforms: Amazon, Flipkart, and more
-            </p>
+          <div className="pt-8 grid gap-6 md:grid-cols-3 text-left">
+            <div className="space-y-2">
+              <div className="text-3xl">⚡</div>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                Lightning Fast
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Parallel AI analysis streams results as they're ready
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl">🎯</div>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                Comprehensive
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Get specs, features, pros, cons, and expert insights
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl">🔗</div>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                Works Everywhere
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Works with major online retailers worldwide
+              </p>
+            </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PageBackground>
   );
 }
