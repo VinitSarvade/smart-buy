@@ -60,7 +60,7 @@ const ConsListItem = twx.li`
 export function ProsConsComponent({ pros, cons }: ProsCons) {
   return (
     <>
-      <CardHeader className="animate-[fadeIn_0.45s_ease] gap-2">
+      <CardHeader className="animate-[fadeIn_0.45s_ease] gap-2 mb-6">
         <CardTitle className="text-3xl font-semibold text-foreground">
           Pros & Cons
         </CardTitle>

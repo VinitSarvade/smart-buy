@@ -1,5 +1,5 @@
-import { PageBackground } from "@/components/ui/layouts";
 import { ProductSearchForm } from "@/components/product-search-form";
+import { PageBackground } from "@/components/ui/layouts";
 
 export default function Home() {
   return (
@@ -8,10 +8,10 @@ export default function Home() {
         <div className="w-full max-w-2xl space-y-8 text-center">
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-              Better Product
+              Smart Buy
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400">
-              AI-powered product analysis in seconds
+              AI-powered product analysis
             </p>
           </div>
 
