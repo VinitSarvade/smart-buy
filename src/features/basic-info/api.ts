@@ -82,8 +82,12 @@ Then IF isProduct=true, extract: product name, current price with currency, brie
   return productInfo;
 }
 
-export const fetchBasicInfo = unstable_cache(
-  fetchBasicInfoUncached,
-  CACHE_CONFIG.BASIC_INFO.key,
-  CACHE_CONFIG.BASIC_INFO,
-);
+export const fetchBasicInfo = (productURL: string) =>
+  unstable_cache(
+    fetchBasicInfoUncached,
+    [...CACHE_CONFIG.BASIC_INFO.key, productURL],
+    {
+      ...CACHE_CONFIG.BASIC_INFO,
+      tags: [...CACHE_CONFIG.BASIC_INFO.tags, `product-url:${productURL}`],
+    },
+  )(productURL);

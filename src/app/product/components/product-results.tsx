@@ -14,6 +14,9 @@ import { PricingComparisonComponent } from "@/features/pricing-comparison/compon
 import type { ProsCons } from "@/features/pros-cons/api";
 import { ProsConsComponent } from "@/features/pros-cons/component";
 import { ProsConsSkeleton } from "@/features/pros-cons/skeleton";
+import type { Reviews } from "@/features/reviews/api";
+import { ReviewsComponent } from "@/features/reviews/component";
+import { ReviewsSkeleton } from "@/features/reviews/skeleton";
 
 import { AgentContent } from "./agent-content";
 import {
@@ -29,6 +32,7 @@ type AgentData = {
   overview?: Overview;
   features?: Features;
   "pros-cons"?: ProsCons;
+  reviews?: Reviews;
 };
 
 type AgentStatus = "pending" | "running" | "complete" | "error";
@@ -68,6 +72,7 @@ export function ProductResults({
   const overviewStatus = getAgentStatus("overview");
   const featuresStatus = getAgentStatus("features");
   const prosConsStatus = getAgentStatus("pros-cons");
+  const reviewsStatus = getAgentStatus("reviews");
 
   return (
     <ProductSection>
@@ -150,10 +155,24 @@ export function ProductResults({
         onRetry={onRetryAgent}
       />
 
+      <ProductDivider />
+
+      <AgentContent
+        data={agentData.reviews}
+        error={agentErrors.reviews}
+        status={reviewsStatus}
+        agentName={getAgentName("reviews")}
+        agentId="reviews"
+        skeleton={ReviewsSkeleton}
+        component={ReviewsComponent}
+        onRetry={onRetryAgent}
+      />
+
       {basicInfoStatus === "complete" &&
         overviewStatus === "complete" &&
         featuresStatus === "complete" &&
-        prosConsStatus === "complete" && (
+        prosConsStatus === "complete" &&
+        reviewsStatus === "complete" && (
           <>
             <ProductDivider />
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

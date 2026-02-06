@@ -21,6 +21,7 @@ function sanitizeErrorMessage(agentId: string, error?: string): string {
     overview: "Failed to load overview information.",
     features: "Failed to load product features.",
     "pros-cons": "Failed to load pros and cons analysis.",
+    reviews: "Failed to load reviews analysis.",
   };
 
   return genericMessages[agentId] || "Failed to load information.";

@@ -6,6 +6,7 @@ import type { BasicInfo } from "@/features/basic-info/api";
 import type { Features } from "@/features/features/api";
 import type { Overview } from "@/features/overview/api";
 import type { ProsCons } from "@/features/pros-cons/api";
+import type { Reviews } from "@/features/reviews/api";
 
 import { AnalysisProgress } from "./components/analysis-progress";
 import { ErrorView } from "./components/error-view";
@@ -16,6 +17,7 @@ type AgentData = {
   overview?: Overview;
   features?: Features;
   "pros-cons"?: ProsCons;
+  reviews?: Reviews;
 };
 
 type AgentStatus = "pending" | "running" | "complete" | "error";
@@ -35,6 +37,7 @@ const AGENTS: AgentProgress[] = [
   { id: "overview", name: "Product Overview", status: "pending" },
   { id: "features", name: "Key Features", status: "pending" },
   { id: "pros-cons", name: "Pros & Cons", status: "pending" },
+  { id: "reviews", name: "Reviews Analysis", status: "pending" },
   { id: "pricing-comparison", name: "Pricing Comparison", status: "pending" },
 ];
 

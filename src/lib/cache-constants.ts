@@ -4,6 +4,7 @@ export const CACHE_KEYS = {
   OVERVIEW: ["overview"],
   FEATURES: ["features"],
   PROS_CONS: ["pros-cons"],
+  REVIEWS: ["reviews"],
   PRODUCT_INFO: ["product-info"],
 } as const;
 
@@ -13,6 +14,7 @@ export const CACHE_TAGS = {
   OVERVIEW: ["product-info", "overview"],
   FEATURES: ["product-info", "features"],
   PROS_CONS: ["product-info", "pros-cons"],
+  REVIEWS: ["product-info", "reviews"],
   PRODUCT_INFO: ["product-info"],
 } as const;
 
@@ -47,6 +49,11 @@ export const CACHE_CONFIG = {
     key: ["pros-cons"] as string[],
     revalidate: CACHE_DURATIONS.PRODUCT_INFO,
     tags: ["product-info", "pros-cons"] as string[],
+  },
+  REVIEWS: {
+    key: ["reviews"] as string[],
+    revalidate: CACHE_DURATIONS.PRODUCT_INFO,
+    tags: ["product-info", "reviews"] as string[],
   },
 };
 

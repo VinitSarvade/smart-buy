@@ -1,4 +1,8 @@
-import { executeAgentsParallel, agentRegistry, getAgentIds } from "@/lib/agents";
+import {
+  agentRegistry,
+  executeAgentsParallel,
+  getAgentIds,
+} from "@/lib/agents";
 import { validateProductURL } from "@/lib/product-url";
 
 type Message = {
@@ -18,7 +22,7 @@ export async function POST(req: Request) {
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid JSON in request body" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -27,17 +31,17 @@ export async function POST(req: Request) {
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return new Response(
       JSON.stringify({ error: "Missing or invalid messages array" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
   const lastMessage = messages[messages.length - 1];
 
   if (!lastMessage || typeof lastMessage.content !== "string") {
-    return new Response(
-      JSON.stringify({ error: "Invalid message format" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Invalid message format" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const rawURL = lastMessage.content.trim();
@@ -56,8 +60,10 @@ export async function POST(req: Request) {
     };
 
     return new Response(
-      JSON.stringify({ error: errorMessages[error.type] || "Invalid product URL" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: errorMessages[error.type] || "Invalid product URL",
+      }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -83,9 +89,10 @@ export async function POST(req: Request) {
       const agentIds = getAgentIds();
       const agentNames: Record<string, string> = {
         "basic-info": "Basic Information",
-        "overview": "Product Overview",
-        "features": "Key Features",
+        overview: "Product Overview",
+        features: "Key Features",
         "pros-cons": "Pros & Cons",
+        reviews: "Reviews Analysis",
       };
 
       await Promise.allSettled(
@@ -103,7 +110,9 @@ export async function POST(req: Request) {
               throw result.error;
             }
 
-            console.log(`[Product API] ${agentId} completed in ${result.duration.toFixed(0)}ms`);
+            console.log(
+              `[Product API] ${agentId} completed in ${result.duration.toFixed(0)}ms`,
+            );
 
             sendMessage({
               type: agentId,
@@ -117,7 +126,7 @@ export async function POST(req: Request) {
               error: error instanceof Error ? error.message : String(error),
             });
           }
-        })
+        }),
       );
 
       sendMessage({
