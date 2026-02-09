@@ -11,6 +11,7 @@ import type { Reviews } from "@/features/reviews/api";
 import { AnalysisProgress } from "./components/analysis-progress";
 import { ErrorView } from "./components/error-view";
 import { ProductResults } from "./components/product-results";
+import { UsageLimitWall } from "./components/usage-limit-wall";
 
 type AgentData = {
   "basic-info"?: BasicInfo;
@@ -48,7 +49,8 @@ type AnalysisStatus =
   | { type: "analyzing" }
   | { type: "closing" }
   | { type: "complete" }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string }
+  | { type: "usage_limit"; used: number; limit: number };
 
 type State = {
   agentData: AgentData;
@@ -59,6 +61,7 @@ type State = {
 
 type Action =
   | { type: "SET_ERROR"; message: string }
+  | { type: "SET_USAGE_LIMIT"; used: number; limit: number }
   | { type: "START_ANALYSIS" }
   | { type: "AGENT_START"; agentId: string }
   | { type: "AGENT_COMPLETE"; agentId: string; data: unknown }
@@ -80,6 +83,12 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         status: { type: "error", message: action.message },
+      };
+
+    case "SET_USAGE_LIMIT":
+      return {
+        ...state,
+        status: { type: "usage_limit", used: action.used, limit: action.limit },
       };
 
     case "START_ANALYSIS":
@@ -183,6 +192,26 @@ export function ProductAnalysisClient({ productURL }: Props) {
           signal: abortController.signal,
         });
 
+        if (response.status === 401) {
+          dispatch({
+            type: "SET_ERROR",
+            message: "Please sign in to analyze products",
+          });
+          return;
+        }
+
+        if (response.status === 403) {
+          const data = await response.json();
+          if (data.error === "usage_limit_exceeded") {
+            dispatch({
+              type: "SET_USAGE_LIMIT",
+              used: data.used,
+              limit: data.limit,
+            });
+            return;
+          }
+        }
+
         if (!response.ok) {
           throw new Error("Failed to start analysis");
         }
@@ -231,6 +260,17 @@ export function ProductAnalysisClient({ productURL }: Props) {
 
                   if (data.type === "error") {
                     console.error(`Agent ${data.agentId} failed:`, data.error);
+
+                    if (data.error?.includes("No product found")) {
+                      dispatch({
+                        type: "SET_ERROR",
+                        message:
+                          "No product found on this page. Please check the URL and try again.",
+                      });
+                      reader.cancel();
+                      return;
+                    }
+
                     dispatch({
                       type: "AGENT_ERROR",
                       agentId: data.agentId,
@@ -268,6 +308,16 @@ export function ProductAnalysisClient({ productURL }: Props) {
       abortController.abort();
     };
   }, [productURL]);
+
+  if (state.status.type === "usage_limit") {
+    return (
+      <UsageLimitWall
+        used={state.status.used}
+        limit={state.status.limit}
+        productURL={productURL}
+      />
+    );
+  }
 
   if (state.status.type === "error") {
     return <ErrorView message={state.status.message} />;

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Afacad_Flux, Noto_Sans_Mono } from "next/font/google";
 
 import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/components/auth-provider";
+import { AuthButtons } from "@/components/auth-buttons";
 
 import "./globals.css";
 
@@ -41,7 +43,10 @@ export default function RootLayout({
           "antialiased",
         )}
       >
-        {children}
+        <AuthProvider>
+          <AuthButtons />
+          {children}
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

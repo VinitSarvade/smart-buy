@@ -3,7 +3,11 @@ import {
   executeAgentsParallel,
   getAgentIds,
 } from "@/lib/agents";
+import { auth } from "@/lib/auth";
+import { checkUsageAllowed, recordAnalysis } from "@/lib/db/usage";
 import { validateProductURL } from "@/lib/product-url";
+
+const jsonHeaders = { "Content-Type": "application/json" };
 
 type Message = {
   role: "user" | "assistant" | "system";
@@ -15,6 +19,15 @@ type RequestBody = {
 };
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({ headers: req.headers });
+
+  if (!session) {
+    return new Response(
+      JSON.stringify({ error: "authentication_required" }),
+      { status: 401, headers: jsonHeaders },
+    );
+  }
+
   let body: RequestBody;
 
   try {
@@ -22,7 +35,7 @@ export async function POST(req: Request) {
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid JSON in request body" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: jsonHeaders },
     );
   }
 
@@ -31,7 +44,7 @@ export async function POST(req: Request) {
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return new Response(
       JSON.stringify({ error: "Missing or invalid messages array" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: jsonHeaders },
     );
   }
 
@@ -40,7 +53,7 @@ export async function POST(req: Request) {
   if (!lastMessage || typeof lastMessage.content !== "string") {
     return new Response(JSON.stringify({ error: "Invalid message format" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders,
     });
   }
 
@@ -63,11 +76,30 @@ export async function POST(req: Request) {
       JSON.stringify({
         error: errorMessages[error.type] || "Invalid product URL",
       }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: jsonHeaders },
     );
   }
 
   const productURL = validation.value;
+
+  const usageCheck = await checkUsageAllowed(
+    session.user.id,
+    session.user.isAnonymous ?? false,
+    productURL,
+  );
+
+  if (!usageCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: "usage_limit_exceeded",
+        used: usageCheck.used,
+        limit: usageCheck.limit,
+      }),
+      { status: 403, headers: jsonHeaders },
+    );
+  }
+
+  await recordAnalysis(session.user.id, productURL);
 
   console.log(`[Product API] Analyzing product: ${productURL}`);
 
